@@ -1,6 +1,8 @@
 archive/
 bin/
 build/
+.vscode/
+.idea/
 
 # Prerequisites
 *.d

@@ -1,9 +1,8 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -Iinclude -O2
+CFLAGS = -Wall -Wextra -O2
 LDFLAGS = 
 
 SRCDIR = src
-INCDIR = include
 BUILDDIR = build
 BINDIR = bin
 
