@@ -1,7 +1,20 @@
 #include "api.h"
 
+void evtp(void) {
+#ifdef _WIN32
+    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+    DWORD dwMode = 0;
+    GetConsoleMode(hOut, &dwMode);
+    dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+    SetConsoleMode(hOut, dwMode);
+#else
+    // Linux
+#endif
+}
+
 void drawBoard(GameState *game) {
     printf("\033[H");
+
     for (int y = 0; y < BOARD_HEIGHT; y++) {
         printf("|");
         for (int x = 0; x < BOARD_WIDTH; x++) {
@@ -33,7 +46,12 @@ void drawBoard(GameState *game) {
         }
         printf("|\n");
     }
-    for (int x =0; x<BOARD_WIDTH +2; x++) printf("--");
+    for (int x = 0; x <= BOARD_WIDTH; ++x){
+        if (x == 0) printf("+-");
+        else if (x == BOARD_WIDTH) printf("-+");
+        else printf("--");
+    }
+
     printf("\n");
     printf("Score: %d\tLevel: %d\n", game->score, game->level);
     printf("Next:\n");
@@ -54,9 +72,6 @@ void drawBoard(GameState *game) {
 void gameOverSequence(GameState *game) {
     int invasionHeight = 0;
     int invasionColor = 90;
-    struct timespec ts;
-    ts.tv_sec = 0;
-    ts.tv_nsec = 200000000;
 
     while (invasionHeight < BOARD_HEIGHT) {
         for (int y = BOARD_HEIGHT - invasionHeight -1; y >= 0; y--) {
@@ -73,7 +88,7 @@ void gameOverSequence(GameState *game) {
         drawBoard(game);
         printf("Game Over\n");
         fflush(stdout);
-        nanosleep(&ts, NULL);
+        sleep_ms(200);
         invasionHeight++;
     }
 
@@ -84,8 +99,12 @@ void gameOverSequence(GameState *game) {
     fflush(stdout);
 
     while (1) {
-        if (kbhit()) {
+        if (kbhitCustom()) {
+#ifdef _WIN32
+            char c = getch();
+#else
             char c = getchar();
+#endif
             if (c == 'q' || c == 'Q') {
                 resetInputMode(game);
                 printf("\033[2J");
@@ -97,6 +116,6 @@ void gameOverSequence(GameState *game) {
                 break;
             }
         }
-        nanosleep(&ts, NULL);
+        sleep_ms(200);
     }
 }

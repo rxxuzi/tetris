@@ -1,13 +1,41 @@
 #include "api.h"
 
 static Tetrimino minos[] = {
-    {{{1,1,1,1}, {0,0,0,0}, {0,0,0,0}, {0,0,0,0}}, 4, 36}, // I
-    {{{1,1,0,0}, {1,1,0,0}, {0,0,0,0}, {0,0,0,0}}, 2, 33}, // O
-    {{{0,1,0,0}, {1,1,1,0}, {0,0,0,0}, {0,0,0,0}}, 3, 35}, // T
-    {{{1,0,0,0}, {1,0,0,0}, {1,1,0,0}, {0,0,0,0}}, 3, 37}, // L
-    {{{0,0,1,0}, {0,0,1,0}, {0,1,1,0}, {0,0,0,0}}, 3, 34}, // J
-    {{{0,1,1,0}, {1,1,0,0}, {0,0,0,0}, {0,0,0,0}}, 3, 32}, // S
-    {{{1,1,0,0}, {0,1,1,0}, {0,0,0,0}, {0,0,0,0}}, 3, 31}  // Z
+    {{
+        {1,1,1,1}, 
+        {0,0,0,0}, 
+        {0,0,0,0}, 
+        {0,0,0,0}}, 4, 36}, // I
+    {{
+        {1,1,0,0}, 
+        {1,1,0,0}, 
+        {0,0,0,0}, 
+        {0,0,0,0}}, 2, 33}, // O
+    {{
+        {0,1,0,0}, 
+        {1,1,1,0}, 
+        {0,0,0,0}, 
+        {0,0,0,0}}, 3, 35}, // T
+    {{
+        {1,0,0,0}, 
+        {1,0,0,0}, 
+        {1,1,0,0}, 
+        {0,0,0,0}}, 3, 37}, // L
+    {{
+        {0,0,1,0}, 
+        {0,0,1,0}, 
+        {0,1,1,0}, 
+        {0,0,0,0}}, 3, 34}, // J
+    {{
+        {0,1,1,0}, 
+        {1,1,0,0}, 
+        {0,0,0,0}, 
+        {0,0,0,0}}, 3, 32}, // S
+    {{
+        {1,1,0,0}, 
+        {0,1,1,0}, 
+        {0,0,0,0}, 
+        {0,0,0,0}}, 3, 31}  // Z
 };
 
 void initGame(GameState *game) {
@@ -22,7 +50,7 @@ void initGame(GameState *game) {
     game->linesCleared = 0;
     game->fallInterval = 1000.0;
     game->lastFallTime = getCurrentTimeMs();
-    srand(time(NULL));
+    srand((unsigned)time(NULL));
     game->nextTetrimino = minos[rand() % 7];
     spawnTetrimino(game);
 }
@@ -79,7 +107,7 @@ void rotateTetrimino(GameState *game) {
     int wallKickOffsets[][2] = {
         {0,0},{-1,0},{1,0},{-2,0},{2,0},{0,-1},
     };
-    int numOffsets = sizeof(wallKickOffsets) / sizeof(wallKickOffsets[0]);
+    int numOffsets = (int)(sizeof(wallKickOffsets) / sizeof(wallKickOffsets[0]));
     for (int i = 0; i < numOffsets; i++) {
         int newX = game->currentX + wallKickOffsets[i][0];
         int newY = game->currentY + wallKickOffsets[i][1];
@@ -123,7 +151,7 @@ int removeFullLines(GameState *game) {
 
 void updateGame(GameState *game) {
     unsigned long currentTime = getCurrentTimeMs();
-    if (currentTime - game->lastFallTime >= game->fallInterval) {
+    if (currentTime - game->lastFallTime >= (unsigned long)game->fallInterval) {
         if (!checkCollision(game, game->currentX, game->currentY +1, &game->currentTetrimino)) {
             game->currentY++;
         } else {
@@ -131,7 +159,6 @@ void updateGame(GameState *game) {
             int lines = removeFullLines(game);
             if (lines > 0) {
                 game->score += lines * 100;
-                
                 if (game->linesCleared >= game->level * 10) {
                     game->level++;
                     if (game->fallInterval > 100)
@@ -152,7 +179,22 @@ void endGame(GameState *game) {
 }
 
 unsigned long getCurrentTimeMs() {
+#ifdef _WIN32
+    return (unsigned long)GetTickCount();
+#else
     struct timeval tv;
     gettimeofday(&tv, NULL);
     return (unsigned long)(tv.tv_sec) * 1000 + (unsigned long)(tv.tv_usec) / 1000;
+#endif
+}
+
+void sleep_ms(unsigned int ms) {
+#ifdef _WIN32
+    Sleep(ms);
+#else
+    struct timespec ts;
+    ts.tv_sec = ms/1000;
+    ts.tv_nsec = (ms%1000)*1000000;
+    nanosleep(&ts, NULL);
+#endif
 }

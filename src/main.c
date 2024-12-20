@@ -2,20 +2,17 @@
 
 int main() {
     GameState game;
+    evtp();
     initGame(&game);
     setInputMode(&game);
     printf("\033[2J\033[H");
-
-    struct timespec ts;
-    ts.tv_sec = 0;
-    ts.tv_nsec = 50000000;
 
     while (1) {
         handleInput(&game);
         updateGame(&game);
         drawBoard(&game);
         fflush(stdout);
-        nanosleep(&ts, NULL);
+        sleep_ms(50);
     }
 
     resetInputMode(&game);
